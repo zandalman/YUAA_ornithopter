@@ -2,6 +2,8 @@
 #include <Adafruit_LSM6DSO32.h>
 
 unsigned long sensorTimeout = 100; // or whatever
+int flying = false;
+int startTime = 0;
 
 // pull these class definitions out into separate files?
 class Wings
@@ -12,6 +14,10 @@ class Wings
   int rPin;
   int lPosition;
   int rPosition;
+  
+  int neutralPos = 1500;
+  int minPos = 20;
+  int maxPos = 30; // so we flap through an angle of 60 degrees
 
   public:
   Wings(int lPin, int rPin)
@@ -25,32 +31,51 @@ class Wings
     lWing.attach(lPin);
     rWing.attach(rPin);
   }
+  void writePos(int t, float amp = 1, float freq = 5)
+  {
+    // amp: [0, 1] -> [minPos, maxPos]
+    int maxAngle = (maxPos - minPos) * amp + minPos;
+    //TODO deal with direction of servo movement
+    lWing.write(maxAngle * sin(2*PI*t/1000 * freq));
+    rWing.write(maxAngle * sin(2*PI*t/1000 * freq));
+  }
+  
 };
 
 class RCController
 {
   // I don't know if this is legit
-  int roll;
+  int freq;
   int throttle; 
-  int rollPin;
+  int steer; 
+  int freqPin;
   int throttlePin;
+  int steerPin;
   
   public:
-  RCController(int rollPin, int throttlePin) {
-    this->rollPin = rollPin;
+  RCController(int freqPin, int throttlePin, int steerPin) {
+    this->freqPin = freqPin;
     this->throttlePin = throttlePin;
+    this->steerPin = steerPin;
   }
 
   void setup()
   {    
-    pinMode(rollPin, INPUT);
+    pinMode(freqPin, INPUT);
     pinMode(throttlePin, INPUT);
+    pinMode(steerPin, INPUT);
   }
 
   void read()
   {
-    roll = pulseIn(rollPin, HIGH);
+    freq = pulseIn(freqPin, HIGH);
     throttle = pulseIn(throttlePin, HIGH);
+    steer = pulseIn(steerPin, HIGH);
+  }
+
+  int getThrottle()
+  {
+    return throttle;
   }
 
   //TODO write some read functions
@@ -94,14 +119,30 @@ class Gyroscope
 
 // NONSENSE NUMBERS
 Wings wings(0, 1);
-RCController rc();
+RCController rc(2, 3, 4);
 Gyroscope gyro(2);
 
 void setup() {
+  Serial.begin(115200);
+  
   wings.setup();
   gyro.setup();
 }
 
 void loop() {
-  
+  //read
+  rc.read(); // TODO: scale to 1!
+  gyro.read();
+  if(!flying and rc.getThrottle() > 1e-3)
+  {
+    startTime = millis();
+    flying = true;
+  }
+
+  //write
+  if(rc.getThrottle() > 1e-3)
+  {
+    wings.writePos(millis() - startTime, rc.getThrottle());
+  }
 }
+// testing link
