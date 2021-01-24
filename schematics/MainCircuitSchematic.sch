@@ -1992,8 +1992,8 @@ Teensy 3.1
 <attribute name="NAME" x="113.03" y="81.915" size="1.778" layer="95"/>
 <attribute name="VALUE" x="113.03" y="71.12" size="1.778" layer="96"/>
 </instance>
-<instance part="UNUSEDRCRECEIVERCHANNELS" gate="A" x="0" y="53.34" smashed="yes">
-<attribute name="NAME" x="-6.35" y="61.595" size="1.778" layer="95"/>
+<instance part="UNUSEDRCRECEIVERCHANNELS" gate="A" x="5.08" y="93.98" smashed="yes">
+<attribute name="NAME" x="-1.27" y="102.235" size="1.778" layer="95"/>
 </instance>
 <instance part="RECIEVGND" gate="G$1" x="106.68" y="111.76" smashed="yes">
 <attribute name="NAME" x="100.33" y="114.935" size="1.778" layer="95"/>
@@ -2078,14 +2078,14 @@ Teensy 3.1
 <wire x1="167.64" y1="71.12" x2="160.02" y2="71.12" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="SERVO2" gate="A" pin="3"/>
-<wire x1="35.56" y1="58.42" x2="30.48" y2="58.42" width="0.1524" layer="91"/>
-<label x="27.94" y="58.42" size="1.778" layer="95"/>
+<pinref part="SERVO2" gate="A" pin="2"/>
+<wire x1="35.56" y1="60.96" x2="30.48" y2="60.96" width="0.1524" layer="91"/>
+<label x="27.94" y="60.96" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="SERVO1" gate="A" pin="3"/>
-<wire x1="35.56" y1="45.72" x2="25.4" y2="45.72" width="0.1524" layer="91"/>
-<label x="25.4" y="45.72" size="1.778" layer="95"/>
+<pinref part="SERVO1" gate="A" pin="2"/>
+<wire x1="35.56" y1="48.26" x2="25.4" y2="48.26" width="0.1524" layer="91"/>
+<label x="25.4" y="48.26" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="5V" class="0">
@@ -2170,18 +2170,16 @@ Teensy 3.1
 </net>
 <net name="N$7" class="0">
 <segment>
-<pinref part="SERVO2" gate="A" pin="2"/>
-<wire x1="35.56" y1="60.96" x2="45.72" y2="60.96" width="0.1524" layer="91"/>
-<wire x1="45.72" y1="60.96" x2="45.72" y2="58.42" width="0.1524" layer="91"/>
+<pinref part="SERVO2" gate="A" pin="3"/>
 <pinref part="B1" gate="G$1" pin="4*"/>
-<wire x1="45.72" y1="58.42" x2="63.5" y2="58.42" width="0.1524" layer="91"/>
+<wire x1="35.56" y1="58.42" x2="63.5" y2="58.42" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$8" class="0">
 <segment>
-<pinref part="SERVO1" gate="A" pin="2"/>
-<wire x1="35.56" y1="48.26" x2="58.42" y2="48.26" width="0.1524" layer="91"/>
-<wire x1="58.42" y1="48.26" x2="58.42" y2="55.88" width="0.1524" layer="91"/>
+<pinref part="SERVO1" gate="A" pin="3"/>
+<wire x1="35.56" y1="45.72" x2="58.42" y2="45.72" width="0.1524" layer="91"/>
+<wire x1="58.42" y1="45.72" x2="58.42" y2="55.88" width="0.1524" layer="91"/>
 <pinref part="B1" gate="G$1" pin="3*"/>
 <wire x1="58.42" y1="55.88" x2="63.5" y2="55.88" width="0.1524" layer="91"/>
 </segment>
