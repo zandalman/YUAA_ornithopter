@@ -1,79 +1,104 @@
 #include <Servo.h>
-#include <Adafruit_LSM6DSO32.h>
 
-unsigned long sensorTimeout = 100; // or whatever
-float deltat = 0.015;
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BNO055.h>
+#include <utility/imumaths.h>
+
+#define BNO055_SAMPLERATE_DELAY_MS (100)
+#define EPSILON (0.00001)
+
+unsigned long sensorTimeout = 30 * 1000; //30 seconds before we give up on detecting the gyro
+float deltat = 0.015; // in sec // used in loop, and for wing motion implemented w/ discrete timesteps
 
 // pull these class definitions out into separate files?
 class Wings
 {
-  Servo lWing;
-  Servo rWing;
-  int lPin;
-  int rPin;
-  float lPosition;
-  float rPosition;
+  Servo wings[2]; // left is 0, right is 1
+  int pins[2];
+  int positions[2]; //stores last command
 
-  float amp = 45/2;
-  float neutralPos = 90; //TODO
-  float minPos = neutralPos - amp;
-  float maxPos = neutralPos + amp;
+  float amp = 45/2; //from zero to highest point
+  int zeroPos = 90; //wings are parallel to ground at this angle
+  int neutralPos = zeroPos + 15; //send this when throttle is zero
   
   int maxFreq = 7; //Hz
 
-  bool rising = true; //maybe not the best way to go about this?
+  // method of determining rising/falling is very iffy
+  // if position was most recently within errorFromMax of maxPos, it's falling
+  // if position was most recently within errorFromMax of minPos, it's rising
+  // use this to determine where on the sin curve the wing is
+  bool rising[2] = {true, true}; // confirm this -- wings go up first? 
   int errorFromMax = 5; //this might be a little high
 
   public:
   Wings(int lPin, int rPin)
   {
-    this->lPin = lPin;
-    this->rPin = rPin;
+    this->pins[0] = lPin;
+    this->pins[1] = rPin;
   }
   void setup()
   {
     // check for existence?
-    lWing.attach(lPin);
-    rWing.attach(rPin);
+    wings[0].attach(pins[0]);
+    wings[1].attach(pins[1]);
   }
 
-  //TODO -- this function takes 150ms to run, so sin lookup tables!
-  void writePos(float throttle = 0, float steer = 0) //can just run "writePos()" to stop wings
+  //TODO -- takes 150ms to run, what's going on
+  //TODO maybe pull calculations into loop, not wings class? 
+  //TODO steering of all kinds
+  void writePos(float throttle, float roll = 0, float pitch = 0, float yaw = 0) // all inputs should be [0,1]
   {
-    lPosition = lWing.read();
-    rPosition = rWing.read();
-    float currentPos = lPosition; //eventually make this currentLPos etc. 
-    
-    float t;
-    if(abs(currentPos - maxPos) < errorFromMax) rising = false;
-    if(abs(currentPos - minPos) < errorFromMax) rising = true;
-
-    if(rising)
+    if((abs(throttle) < EPSILON))
     {
-      t = asin((currentPos-neutralPos)/amp)/(2*PI);
-    }
-    else
-    {
-      t = asin(-(currentPos-neutralPos)/amp)/(2*PI) + 0.5;
+      wings[0].write(neutralPos);
+      wings[1].write(neutralPos);
+      return;
     }
 
+    float nextPos[2];
+          
     float freq = maxFreq * throttle;
-    float nextPos = amp * sin(freq * 2*PI * deltat + 2*PI*t) + neutralPos; //maybe wrong units for things, freq / 1000? 
 
-    Serial.print(nextPos);
-    Serial.print(" at frequency ");
-    Serial.println(freq);
-    
-    //TODO steering of all kinds
-    lWing.write(nextPos);
-    rWing.write(nextPos);
+    // we have a formula for wing position as "f(x) = amp * sin(freq * t) + neutral"
+    // but we can't change the frequency without regard for current position
+    // so we create a new sin function where g(0) = the current position
+    // it's the same as f(x), but with some offset in the sin function
+    // then we evaluate g(deltat) to find the next desired position
+    for(int i = 0; i <= 1; i++)
+    {
+      float offset; // in secs
+
+      if(abs(positions[i] - (neutralPos + amp)) < errorFromMax) rising[i] = false;
+      if(abs(positions[i] - (neutralPos - amp)) < errorFromMax) rising[i] = true;
+
+      // TODO add check for in range
+      // calculate offset so g(0) = current position
+      if(rising)
+      {
+        offset = asin((positions[i]-neutralPos)/amp)/(2*PI);
+      }
+      else
+      {
+        offset = asin(-(positions[i]-neutralPos)/amp)/(2*PI) + 0.5;
+      }
+  
+      nextPos[i] = amp * sin(freq * 2*PI * deltat + 2*PI*offset) + neutralPos;
+      positions[i] = nextPos[i];
+    }
+
+    // pulled out into separate loop to make more simultaneous
+    for(int i = 0; i <= 1; i++)
+    {
+      wings[i].write(nextPos[i]);
+    }
   }
   
 };
 
 class RCController
 {
-  //TODO make this a struct
+  //TODO make this an array? maybe even an array of stick structs ?
   int leftVertical;
   int leftHorizontal;
   int rightVertical;
@@ -84,8 +109,8 @@ class RCController
   int rightVerticalPin;
   int rightHorizontalPin;
 
-  float deadzone = 16; //in raw sensor readings, ignore 16 units on each side of neutral
-  
+  float deadzone = 18; //in raw sensor readings, ignore this many units on each side of neutral
+
   float leftVerticalDefault = 1483;
   float leftHorizontalDefault = 1483;
   float rightVerticalDefault = 1487;
@@ -132,22 +157,28 @@ class RCController
     return normalizedReading;
   }
   
-  int getSteer()
+  int getYaw()
   {
-    /*float normalizedReading = abs(leftHorizontalPin - defaultReading) / (maxReading - defaultReading); //convert to [0, 1]
-    normalizedReading = (normalizedReading < 0.1 ? 0 : normalizedReading); //deadzone
-    return normalizedReading;*/
+    return 0;
+  }
+
+  int getPitch()
+  {
+    return 0;
+  }
+
+  int getRoll()
+  {
     return 0;
   }
 };
 
 class Gyroscope
 {
-  int gPin; // NONSENSE
-  Adafruit_LSM6DSO32 dso32;
-  sensors_event_t accel; //m/s^2
-  sensors_event_t gyro; //rad/s
-  sensors_event_t temp; //C
+  int gPin; 
+  Adafruit_BNO055 bno;
+  imu::Vector<3> euler;
+  imu::Vector<3> accel;
 
   public:
   Gyroscope(int gPin) 
@@ -157,55 +188,54 @@ class Gyroscope
 
   void setup()
   {
-    if(!dso32.begin_I2C()) // using I2C or SPI?
+    bno = Adafruit_BNO055(55);
+    if(!bno.begin()) // using I2C or SPI?
     {
       unsigned long startTime = millis();
       while(millis() - startTime < sensorTimeout)
       {
+        Serial.print("No BNO055 detected.");
         delay(10);
       }
     }
-    // if we want to customize range/rates, change here      
   }
 
   void read()
   {
-    dso32.getEvent(&accel, &gyro, &temp);
+    euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+    accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
   }
 
   float getXRot()
   {
-    return gyro.gyro.x;
+    return euler.x();
   }  
   float getYRot()
   {
-    return gyro.gyro.y;
+    return euler.y();
   }
   float getZRot()
   {
-    return gyro.gyro.z;
+    return euler.z();
   }
   
   float getXAccel()
   {
-    return accel.acceleration.x;
+    return accel.x();
   }  
   float getYAccel()
   {
-    return accel.acceleration.y;
+    return accel.y();
   } 
   float getZAccel()
   {
-    return accel.acceleration.z;
+    return accel.z();
   }  
-
-  //TODO write some read functions
-  // e.g., return gyro.gyro.x or accel.acceleration.z
 };
 
-// NONSENSE NUMBERS
+// Totally random pins for my testing setup
 Wings wings(9, 10);
-RCController rc(2, 3, 4, 5); // goes to channels 1, 2, 3
+RCController rc(2, 3, 4, 5); // goes to channels 1, 2, 3, 4 on RC receiver, and TODO: definitely does NOT correspond to the correct sticks on the RC controller. 
 Gyroscope gyro(7);
 
 void setup() {
@@ -218,23 +248,20 @@ void setup() {
 void loop() {
   //read
   rc.read();
-  //Serial.println(rc.getThrottle());
-  //Serial.println(rc.getSteer());
   
-  //gyro.read();
+  gyro.read();
   /*Serial.println(gyro.getXRot());
   Serial.println(gyro.getYRot());
   Serial.println(gyro.getZRot());
   Serial.println(gyro.getXAccel());
   Serial.println(gyro.getYAccel());
   Serial.println(gyro.getZAccel());*/
+
+  //update
+  // move control code here
   
   //write
-  if(rc.getThrottle() > 1e-3)
-  {
-    wings.writePos(rc.getThrottle());
-  }
+  wings.writePos(rc.getThrottle());
 
-
-  delay(100);
+  delay(deltat * 1000);
 }
