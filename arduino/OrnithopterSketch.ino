@@ -1,4 +1,5 @@
 #include <Servo.h>
+#include <PPMReader.h>
 
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
@@ -8,8 +9,12 @@
 #define BNO055_SAMPLERATE_DELAY_MS (100)
 #define EPSILON (0.00001)
 
-unsigned long sensorTimeout = 30 * 1000; //30 seconds before we give up on detecting the gyro
+unsigned long sensorTimeout = 30; //30 ms before we give up on detecting the gyro
 float deltat = 0.015; // in sec // used in loop, and for wing motion implemented w/ discrete timesteps
+
+int interruptPin = 3;
+int channelAmount = 4;
+PPMReader ppm(interruptPin, channelAmount); // I want to move this into RCController; how would I separate this into a constructor without weird pointer things?
 
 // pull these class definitions out into separate files?
 class Wings
@@ -98,62 +103,32 @@ class Wings
 
 class RCController
 {
-  //TODO make this an array? maybe even an array of stick structs ?
-  int leftVertical;
-  int leftHorizontal;
-  int rightVertical;
-  int rightHorizontal; 
-   
-  int leftVerticalPin;
-  int leftHorizontalPin;
-  int rightVerticalPin;
-  int rightHorizontalPin;
-
-  float deadzone = 18; //in raw sensor readings, ignore this many units on each side of neutral
-
-  float leftVerticalDefault = 1483;
-  float leftHorizontalDefault = 1483;
-  float rightVerticalDefault = 1487;
-  float rightHorizontalDefault = 1500;
-
-  float leftVerticalMin = 999;
-  float leftHorizontalMin = 999;
-  float rightVerticalMin = 979;
-  float rightHorizontalMin = 1010;
-
-  float leftVerticalMax = 1996;
-  float leftHorizontalMax = 1989;
-  float rightVerticalMax = 1986;
-  float rightHorizontalMax = 1983;
+  int values[4];
+  int defaultValue = 1500;
+  int maxValue = 2000;
+  
+  float deadzone = 20; //in raw sensor readings, ignore this many units on each side of neutral
 
   public:
-  RCController(int leftVerticalPin, int leftHorizontalPin, int rightVerticalPin, int rightHorizontalPin) {
-    this->leftVerticalPin = leftVerticalPin;
-    this->leftHorizontalPin = leftHorizontalPin;
-    this->rightVerticalPin = rightVerticalPin;
-    this->rightHorizontalPin = rightHorizontalPin;
-  }
+  RCController(int interruptPin) {}
 
   void setup()
   {    
-    pinMode(leftVerticalPin, INPUT);
-    pinMode(leftHorizontalPin, INPUT);
-    pinMode(rightVerticalPin, INPUT);
-    pinMode(rightHorizontalPin, INPUT);
   }
 
   void read()
   {
-    leftVertical = pulseIn(leftVerticalPin, HIGH);
-    leftHorizontal = pulseIn(leftHorizontalPin, HIGH);
-    rightVertical = pulseIn(rightVerticalPin, HIGH);
-    rightHorizontal = pulseIn(rightHorizontalPin, HIGH);
+    for (int channel = 0; channel < channelAmount; ++channel) {
+        values[channel] = ppm.latestValidChannelValue(channel + 1, 0);
+        Serial.print(String(values[channel]) + " ");
+    }
+    Serial.println();
   }
 
-  float getThrottle()
+  float getThrottle() //channel 2
   {
-    float deadzoneReading = (abs(rightVertical - rightVerticalDefault) < deadzone ? rightVerticalDefault : rightVertical); //deadzone
-    float normalizedReading = abs(deadzoneReading - rightVerticalDefault) / (rightVerticalMax - rightVerticalDefault); //convert to [0, 1]
+    float deadzoneReading = (abs(values[2] - defaultValue) < deadzone ? 1500 : values[2]); //deadzone
+    float normalizedReading = abs(deadzoneReading - defaultValue) / (maxValue - defaultValue); //convert to [0, 1]
     return normalizedReading;
   }
   
@@ -235,7 +210,7 @@ class Gyroscope
 
 // Totally random pins for my testing setup
 Wings wings(9, 10);
-RCController rc(2, 3, 4, 5); // goes to channels 1, 2, 3, 4 on RC receiver, and TODO: definitely does NOT correspond to the correct sticks on the RC controller. 
+RCController rc(interruptPin);
 Gyroscope gyro(7);
 
 void setup() {
