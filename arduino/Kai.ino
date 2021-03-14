@@ -10,7 +10,7 @@ const int yawAngle = 5;
 
 int startTime;
 
-struct pair {int left, right;} wings = {0, 0};
+struct {int left, right;} wings = {0, 0};
 
 void updatePosition(float elapsedTime, float throttle, float roll, float pitch, float yaw) {
   int levelAmplitude = maxLevelAngle - minLevelAngle;
