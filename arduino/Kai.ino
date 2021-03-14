@@ -1,17 +1,27 @@
 #include <Servo.h>
 
-float amplitude = 20; // degrees
-float frequency = 2; // frequency in Hz
-int servoPin = 12; // Servo pin number
+const int maxFrequency = 5;
+const int minLevelAngle = -10;
+const int maxLevelAngle 10;
+const int rollPhaseShift = 45;
+const int minPitchAngle = -5;
+const int maxPitchAngle = 5;
+const int yawAngle = 5;
 
-Servo wing;
+int startTime;
 
-int startTime = 0;
+int nextPos(int elapsedTime, float throttle, float roll, float pitch, float yaw) {
+  int levelAmplitude = maxLevelAngle - minLevelAngle;
+  int zeroOffset = 90 + minPitchAngle;
+  float frequency = throttle * maxFrequency;
+  float normalizedTime = elapsedTime / 1000;
+  int phaseShift = roll * rollPhaseShift / 720;
+  int pitchTerm = maxPitchAngle - pitch * (maxPitchAngle - minPitchAngle)
+  int yawTerm = yaw * yawAngle;
 
-// To-do for Kai
-// Add nextPos function
-// Inputs are throttle (0-1), roll (ms), pitch (degrees), and yaw (degrees)
-// Outputs are wing positions (degrees)
+  int leftPos = levelAmplitude * sin(frequency * 2*PI * (normalizedTime + phaseShift)) + zeroOffset + pitchTerm + yawTerm;
+  int rightPos = levelAmplitude * sin(frequency * 2*PI * (normalizedTime - phaseShift)) + zeroOffset + pitchTerm - yawTerm;
+}
 
 void setup() {
   Serial.begin(9600);
@@ -19,11 +29,11 @@ void setup() {
   wing.attach(servoPin);
 }
 
-void loop() {
-  int nextPos = amplitude * sin(frequency * 2*PI * (millis() - startTime)/1000) + 90; // Replace with function
-  Serial.print((millis() - startTime)/1000);
-  Serial.print(", ");
-  Serial.println(nextPos);
-  wing.write(nextPos);
-  delay(15);
-}
+// void loop() {
+//   int nextPos = amplitude * sin(frequency * 2*PI * (millis() - startTime)/1000) + 90; // replace with function
+// //  Serial.print((millis() - startTime)/1000);
+// //  Serial.print(", ");
+// //  Serial.println(nextPos);
+// //  wing.write(nextPos);
+// //  delay(15);
+// }
