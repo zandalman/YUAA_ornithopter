@@ -10,30 +10,28 @@ const int yawAngle = 5;
 
 int startTime;
 
-int nextPos(int elapsedTime, float throttle, float roll, float pitch, float yaw) {
+int leftPos(int elapsedTime, float throttle, float roll, float pitch, float yaw) {
   int levelAmplitude = maxLevelAngle - minLevelAngle;
   int zeroOffset = 90 + minPitchAngle;
   float frequency = throttle * maxFrequency;
   float normalizedTime = elapsedTime / 1000;
-  int phaseShift = roll * rollPhaseShift / 720;
-  int pitchTerm = maxPitchAngle - pitch * (maxPitchAngle - minPitchAngle)
-  int yawTerm = yaw * yawAngle;
+  float phaseShift = roll * rollPhaseShift / 720;
+  float pitchTerm = maxPitchAngle - pitch * (maxPitchAngle - minPitchAngle)
+  float yawTerm = yaw * yawAngle;
 
   int leftPos = levelAmplitude * sin(frequency * 2*PI * (normalizedTime + phaseShift)) + zeroOffset + pitchTerm + yawTerm;
-  int rightPos = levelAmplitude * sin(frequency * 2*PI * (normalizedTime - phaseShift)) + zeroOffset + pitchTerm - yawTerm;
+  return leftPos;
 }
 
-void setup() {
-  Serial.begin(9600);
-  startTime = millis();
-  wing.attach(servoPin);
+int rightPos(int elapsedTime, float throttle, float roll, float pitch, float yaw) {
+  int levelAmplitude = maxLevelAngle - minLevelAngle;
+  int zeroOffset = 90 + minPitchAngle;
+  float frequency = throttle * maxFrequency;
+  float normalizedTime = elapsedTime / 1000;
+  float phaseShift = roll * rollPhaseShift / 720;
+  float pitchTerm = maxPitchAngle - pitch * (maxPitchAngle - minPitchAngle)
+  float yawTerm = yaw * yawAngle;
+  
+  int rightPos = levelAmplitude * sin(frequency * maxFrequency * 2*PI * (normalizedTime - phaseShift)) + zeroOffset + pitchTerm - yawTerm;
+  return rightPos;
 }
-
-// void loop() {
-//   int nextPos = amplitude * sin(frequency * 2*PI * (millis() - startTime)/1000) + 90; // replace with function
-// //  Serial.print((millis() - startTime)/1000);
-// //  Serial.print(", ");
-// //  Serial.println(nextPos);
-// //  wing.write(nextPos);
-// //  delay(15);
-// }
