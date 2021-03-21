@@ -16,6 +16,12 @@ int interruptPin = 3;
 int channelAmount = 4;
 PPMReader ppm(interruptPin, channelAmount); // I want to move this into RCController; how would I separate this into a constructor without weird pointer things?
 
+// channels!
+int rhChannel =  1;
+int rvChannel = 2;
+int lvChannel = 3;
+int lhChannel = 4;
+
 // pull these class definitions out into separate files?
 class Wings
 {
@@ -109,6 +115,11 @@ class RCController
   
   float deadzone = 20; //in raw sensor readings, ignore this many units on each side of neutral
 
+  int throttleChannel = lvChannel;
+  int rollChannel = rhChannel;
+  int pitchChannel = rvChannel;
+  int yawChannel = lhChannel;
+
   public:
   RCController(int interruptPin) {}
 
@@ -125,26 +136,31 @@ class RCController
     Serial.println();
   }
 
-  float getThrottle() //channel 2
+  float normalize(int joystickVal)
   {
-    float deadzoneReading = (abs(values[2] - defaultValue) < deadzone ? 1500 : values[2]); //deadzone
+    float deadzoneReading = (abs(joystickVal - defaultValue) < deadzone ? 1500 : joystickVal); //deadzone
     float normalizedReading = abs(deadzoneReading - defaultValue) / (maxValue - defaultValue); //convert to [0, 1]
     return normalizedReading;
+  }
+
+  float getThrottle() 
+  {
+    return normalize(values[throttleChannel]);
   }
   
   int getYaw()
   {
-    return 0;
+    return normalize(values[yawChannel]);
   }
 
   int getPitch()
   {
-    return 0;
+    return normalize(values[pitchChannel]);
   }
 
   int getRoll()
   {
-    return 0;
+    return normalize(values[rollChannel]);
   }
 };
 
