@@ -34,26 +34,22 @@ void updatePosition(float throttle, float roll, float pitch, float yaw) {
   if (throttle == 0) {
     wings.left = zeroThrottleAngle;
   }
-  
+
   float deltaTheta = throttle * maxFrequency * ((float) delayTime / 1000) * 2 * PI;
   levelTheta += deltaTheta;
 
-  // left if roll < 0; level if roll == 0; roll if pitch > 0
-  if (pitch < 0) {
-    leftTheta = levelTheta + roll * maxRollPhaseShift * PI / 180;
-    rightTheta = levelTheta;
-  } else if (pitch == 0) {
+  if (roll < 0) {
     leftTheta = levelTheta;
-    rightTheta = levelTheta;
+    rightTheta = levelTheta + roll * maxRollPhaseShift * PI / 180;
   } else {
-    leftTheta = levelTheta;
-    rightTheta = levelTheta - roll * maxRollPhaseShift * PI / 180;
+    leftTheta = levelTheta - roll * maxRollPhaseShift * PI / 180;
+    rightTheta = levelTheta;
   }
 
   float amplitude = (float) (maxLevelAngle - minLevelAngle) / 2;
 
-  wings.left = amplitude * sin(leftTheta) - pitch * maxPitchAngle + yaw * maxYawAngle;
-  wings.right = amplitude * sin(rightTheta) - pitch * maxPitchAngle - yaw * maxYawAngle;
+  wings.left = amplitude * sin(leftTheta) + pitch * maxPitchAngle + yaw * maxYawAngle;
+  wings.right = amplitude * sin(rightTheta) + pitch * maxPitchAngle - yaw * maxYawAngle;
 }
 
 
