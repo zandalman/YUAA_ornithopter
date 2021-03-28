@@ -31,8 +31,12 @@ struct pair {
 
 
 void updatePosition(float throttle, float roll, float pitch, float yaw) {
-  if (throttle == 0)
+  if (throttle == 0) {
     wings.left = zeroThrottleAngle;
+    wings.right = zeroThrottleAngle;
+    
+    return;
+  }
 
   float deltaTheta = throttle * maxFrequency * ((float) delayTime / 1000) * 2 * PI;
   levelTheta += deltaTheta;
