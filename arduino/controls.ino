@@ -70,7 +70,9 @@ void setup() {
   wingServos.right.attach(3);
   
   wingServos.left.write(90);
-  wingServos.left.write(90);
+  wingServos.right.write(90);
+
+  delay(1000);
 
   startTime = millis();
 
@@ -83,6 +85,8 @@ void setup() {
 
 
 void loop() {
+  throttle = min(1, (float) (millis() - startTime) / 10000);
+  
   updatePosition(throttle, roll, pitch, yaw);
 
   wingServos.left.write(90 - wings.left);
