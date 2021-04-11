@@ -79,7 +79,7 @@ void setup() {
   // Arbitrary values
   throttle = 1;
   roll = -0.5;
-  pitch = 0.5;
+  pitch = 0.6;
   yaw = 0;
 }
 
