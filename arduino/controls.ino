@@ -1,3 +1,10 @@
+#include <Servo.h>
+
+struct servoPair {
+  Servo left;
+  Servo right;
+} wingServos;
+
 // Tweak these --------------------
 const float maxFrequency = 5;
 const int zeroThrottleAngle = 15;
@@ -34,7 +41,7 @@ void updatePosition(float throttle, float roll, float pitch, float yaw) {
   if (throttle == 0) {
     wings.left = zeroThrottleAngle;
     wings.right = zeroThrottleAngle;
-    
+
     return;
   }
 
@@ -58,20 +65,28 @@ void updatePosition(float throttle, float roll, float pitch, float yaw) {
 
 void setup() {
   Serial.begin(9600);
+
+  wingServos.left.attach(2);
+  wingServos.right.attach(3);
+  
+  wingServos.left.write(90);
+  wingServos.left.write(90);
+
   startTime = millis();
 
-  levelTheta = 0;
-
   // Arbitrary values
-  throttle = 0.5;
-  roll = -0.34;
-  pitch = 0.75;
-  yaw = -0.6;
+  throttle = 1;
+  roll = -0.5;
+  pitch = 0.5;
+  yaw = 0;
 }
 
 
 void loop() {
   updatePosition(throttle, roll, pitch, yaw);
-  
+
+  wingServos.left.write(90 - wings.left);
+  wingServos.right.write(90 + wings.right);
+
   delay(delayTime);
 }
