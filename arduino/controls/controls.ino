@@ -18,13 +18,14 @@ PulsePositionInput RCInput;
 const int RIGHT_VERTICAL = 1;
 const int RIGHT_HORIZONTAL = 2;
 const int LEFT_VERTICAL = 3;
-const int LEFT_HORIZONTAL = 4;
+int LEFT_HORIZONTAL = 4;
+int FLAPPING_AMPLITUDE = 5;
 
 // User defined values
 const float maxFrequency = 7; // Fastest flapping frequency
 const int zeroThrottleAngle = 15; // Gliding angle when throttle is turned down
-const int minLevelAngle = -30; // Angle at bottom of cycle when roll and pitch are turned off
-const int maxLevelAngle = 30; // Angle at top of cycle when roll and pitch are turned off
+const int levelAngle = 0; // Angle at middle of flapping cycle
+const int maxAmplitude = 45; // Maximum amplitude of flapping cycle
 const int maxRollPhaseShift = 30; // Maximum phase shift in degrees when roll is at max
 const int maxPitchAngle = 10; // Maximum change in angle when pitch is at max
 const int maxYawAngle = 10; // Maximum change in angle when yaw is at max
@@ -49,7 +50,7 @@ struct pair {
   int right;
 } wings;
 
-void updatePosition(float throttle, float roll, float pitch, float yaw) {
+void updatePosition(float throttle, float roll, float pitch, float yaw, float amplitude) {
   if (throttle == 0) {
     wings.left = zeroThrottleAngle + pitch * maxPitchAngle + yaw * maxYawAngle;
     wings.right = zeroThrottleAngle + pitch * maxPitchAngle - yaw * maxYawAngle;
@@ -67,12 +68,19 @@ void updatePosition(float throttle, float roll, float pitch, float yaw) {
     rightTheta = levelTheta;
   }
 
-  float amplitude = (float) (maxLevelAngle - minLevelAngle) / 2;
-
-  wings.left = amplitude * sin(leftTheta) + pitch * maxPitchAngle + yaw * maxYawAngle;
-  wings.right = amplitude * sin(rightTheta) + pitch * maxPitchAngle - yaw * maxYawAngle;
+  wings.left = levelAngle + amplitude * sin(leftTheta) + pitch * maxPitchAngle + yaw * maxYawAngle;
+  wings.right = levelAngle + amplitude * sin(rightTheta) + pitch * maxPitchAngle - yaw * maxYawAngle;
 }
 
+void toggleControls(int state) {
+  if (state == 0) {
+    LEFT_HORIZONTAL = 4;
+    FLAPPING_AMPLITUDE = 5;
+  } else {
+    LEFT_HORIZONTAL = 5;
+    FLAPPING_AMPLITUDE = 4;
+  }
+}
 
 void setup() {
   // Begin serial
