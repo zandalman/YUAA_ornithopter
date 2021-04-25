@@ -21,15 +21,15 @@ const int LEFT_VERTICAL = 3;
 const int LEFT_HORIZONTAL = 4;
 
 // User defined values
-const float maxFrequency = 7;
-const int zeroThrottleAngle = 15;
-const int minLevelAngle = -30;
-const int maxLevelAngle = 30;
-const int maxRollPhaseShift = 30;
-const int maxPitchAngle = 10;
-const int maxYawAngle = 10;
-const int deadzone = 50;
-const int delayTime = 5;
+const float maxFrequency = 7; // Fastest flapping frequency
+const int zeroThrottleAngle = 15; // Gliding angle when throttle is turned down
+const int minLevelAngle = -30; // Angle at bottom of cycle when roll and pitch are turned off
+const int maxLevelAngle = 30; // Angle at top of cycle when roll and pitch are turned off
+const int maxRollPhaseShift = 30; // Maximum phase shift in degrees when roll is at max
+const int maxPitchAngle = 10; // Maximum change in angle when pitch is at max
+const int maxYawAngle = 10; // Maximum change in angle when yaw is at max
+const int deadzone = 50; // Range in which a control registers as a default value
+const int delayTime = 5; // How fast in ms the loop cycles
 
 // Initialize variables
 float throttle;
