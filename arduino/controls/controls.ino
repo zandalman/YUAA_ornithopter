@@ -19,7 +19,10 @@ const int RIGHT_VERTICAL = 1;
 const int RIGHT_HORIZONTAL = 2;
 const int LEFT_VERTICAL = 3;
 int LEFT_HORIZONTAL = 4;
-int FLAPPING_AMPLITUDE = 5;
+int LEFT_DIAL = 5;
+int RIGHT_DIAL = 6;
+int LEFT_SWITCH = 7;
+int RIGHT_SWITCH = 8;
 
 // User defined values
 const float maxFrequency = 7; // Fastest flapping frequency
@@ -37,6 +40,7 @@ float throttle;
 float roll;
 float pitch;
 float yaw;
+float amp;
 
 int startTime;
 int elapsedTime;
@@ -50,7 +54,7 @@ struct pair {
   int right;
 } wings;
 
-void updatePosition(float throttle, float roll, float pitch, float yaw, float amplitude) {
+void updatePosition(float throttle, float roll, float pitch, float yaw, float amp) {
   if (throttle == 0) {
     wings.left = zeroThrottleAngle + pitch * maxPitchAngle + yaw * maxYawAngle;
     wings.right = zeroThrottleAngle + pitch * maxPitchAngle - yaw * maxYawAngle;
@@ -68,18 +72,8 @@ void updatePosition(float throttle, float roll, float pitch, float yaw, float am
     rightTheta = levelTheta;
   }
 
-  wings.left = levelAngle + amplitude * sin(leftTheta) + pitch * maxPitchAngle + yaw * maxYawAngle;
-  wings.right = levelAngle + amplitude * sin(rightTheta) + pitch * maxPitchAngle - yaw * maxYawAngle;
-}
-
-void toggleControls(int state) {
-  if (state == 0) {
-    LEFT_HORIZONTAL = 4;
-    FLAPPING_AMPLITUDE = 5;
-  } else {
-    LEFT_HORIZONTAL = 5;
-    FLAPPING_AMPLITUDE = 4;
-  }
+  wings.left = levelAngle + amp * sin(leftTheta) + pitch * maxPitchAngle + yaw * maxYawAngle;
+  wings.right = levelAngle + amp * sin(rightTheta) + pitch * maxPitchAngle - yaw * maxYawAngle;
 }
 
 void setup() {
@@ -126,8 +120,9 @@ void loop() {
   float pitch = normalize_steering(RCInput.read(RIGHT_HORIZONTAL));
   float throttle = normalize_throttle(RCInput.read(LEFT_VERTICAL));
   float roll = normalize_steering(RCInput.read(LEFT_HORIZONTAL));
+  float amp = normalize_throttle(RCInput.read(LEFT_DIAL));
   
-  updatePosition(throttle, roll, pitch, yaw);
+  updatePosition(throttle, roll, pitch, yaw, amp);
 
   wingServos.left.write(90 - wings.left);
   wingServos.right.write(90 + wings.right);
