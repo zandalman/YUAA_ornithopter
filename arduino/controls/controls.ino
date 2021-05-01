@@ -7,8 +7,8 @@ struct servoPair {
 } wingServos;
 
 // Define pins
-int leftServoPin = 3;
-int rightServoPin = 4;
+int leftServoPin = 4;
+int rightServoPin = 3;
 int rxPin = 9;
 
 // Initialize RC input
@@ -24,8 +24,13 @@ int RIGHT_DIAL = 6;
 int LEFT_SWITCH = 7;
 int RIGHT_SWITCH = 8;
 
+// Define control modes
+const int NORMAL_MODE = 1000;
+const int BASIC_MODE = 1500;
+const int AMP_MODE = 2000;
+
 // User defined values
-const float maxFrequency = 7; // Fastest flapping frequency
+const float maxFrequency = 5; // Fastest flapping frequency
 const int zeroThrottleAngle = 15; // Gliding angle when throttle is turned down
 const int levelAngle = 0; // Angle at middle of flapping cycle
 const int maxAmplitude = 45; // Maximum amplitude of flapping cycle
@@ -36,6 +41,7 @@ const int deadzone = 50; // Range in which a control registers as a default valu
 const int delayTime = 5; // How fast in ms the loop cycles
 
 // Initialize variables
+int control_mode;
 float throttle;
 float roll;
 float pitch;
@@ -72,8 +78,8 @@ void updatePosition(float throttle, float roll, float pitch, float yaw, float am
     rightTheta = levelTheta;
   }
 
-  wings.left = levelAngle + amp * sin(leftTheta) + pitch * maxPitchAngle + yaw * maxYawAngle;
-  wings.right = levelAngle + amp * sin(rightTheta) + pitch * maxPitchAngle - yaw * maxYawAngle;
+  wings.left = levelAngle + maxAmplitude * amp * sin(leftTheta) + pitch * maxPitchAngle + yaw * maxYawAngle;
+  wings.right = levelAngle + maxAmplitude * amp * sin(rightTheta) + pitch * maxPitchAngle - yaw * maxYawAngle;
 }
 
 void setup() {
@@ -116,11 +122,21 @@ float normalize_steering (float value) {
 
 void loop() {
   // Read RC input
-  float yaw = normalize_steering(RCInput.read(RIGHT_VERTICAL));
-  float pitch = normalize_steering(RCInput.read(RIGHT_HORIZONTAL));
-  float throttle = normalize_throttle(RCInput.read(LEFT_VERTICAL));
-  float roll = normalize_steering(RCInput.read(LEFT_HORIZONTAL));
-  float amp = normalize_throttle(RCInput.read(LEFT_DIAL));
+  control_mode = RCInput.read(RIGHT_SWITCH);
+  yaw = normalize_steering(RCInput.read(RIGHT_VERTICAL));
+  pitch = normalize_steering(RCInput.read(RIGHT_HORIZONTAL));
+  throttle = normalize_throttle(RCInput.read(LEFT_VERTICAL));
+
+  if (control_mode == NORMAL_MODE) {
+    roll = normalize_steering(RCInput.read(LEFT_HORIZONTAL));
+    amp = normalize_throttle(RCInput.read(LEFT_DIAL));
+  } else if (control_mode == AMP_MODE) {
+    roll = normalize_steering(RCInput.read(LEFT_DIAL));
+    amp = normalize_throttle(RCInput.read(LEFT_HORIZONTAL));
+  } else if (control_mode == BASIC_MODE) {
+    roll = 0;
+    amp = 0.6;
+  }
   
   updatePosition(throttle, roll, pitch, yaw, amp);
 
