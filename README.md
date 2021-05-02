@@ -1,9 +1,22 @@
 # YUAA Ornithopter Project
 
-An ornithopter is a flying machine which generates thrust and lift by imitating the flight of birds. Ornithopters have the advantages of maneuverability, versatility, and stealth over traditional aircraft, making them useful in aerial reconnaissance, search and rescue, and agricultural surveying. In this project, we will design and build an ornithopter capable of sustained flight and maneuvering.
+An ornithopter is a flying machine that generates thrust and lift by imitating the flight of birds. Ornithopters have the advantages of maneuverability, versatility, and stealth over traditional aircraft, making them useful in aerial reconnaissance, search & rescue, and agricultural surveying. In this project, we design and build an ornithopter capable of sustained flight and maneuvering.
 
-## Software
 
-Explain the software
+# Software
 
-  `Code goes here`
+## Controls
+
+Our ornithopter is highly customizable, with many adjustable variables to cater to various flying styles. Such include:
+
+ - **maxFrequency**: Maximum flapping frequency reached when throttle is pulled all the way up. The higher the value, the faster the wings flap, and the more sensitive the flapping frequency will be.
+ - **zeroThrottleAngle**: Our ornithopter glides when the throttle is set to 0, or a range close to 0 denoted by **deadZone**. This variable adjusts the angle (in degrees) above the horizontal the wing rests at in glide mode.
+ - **levelAngle**: Angle above the horizontal at center of flapping cycle.
+ - **maxAmplitude**: How far above and below **levelAngle** the wing flaps.
+ - **maxRollPhaseShift**: Roll is achieved by adding a phase delay to the wing opposite to the side of which you want to turn. This variable defines the maximum phase shift when the magnitude of the roll control is at its maximum.
+ - **maxPitchAngle**: Pitch is elevated by raising the **levelAngle** and lowered by decreasing it. This variable denotes the maximum change to **levelAngle** when pitch is set to its maximum magnitude. The higher this is, the more sensitive the pitch control.
+ - **maxYawAngle**: Yaw is achieved by lowering the **levelAngle** on the side you yaw towards and raising it on the opposite side. This variable defines the maximum deviation to **levelAngle** when yaw is set to its maximum magnitude. The higher this is, the more sensitive the yaw control.
+ - **deadZone**: For every control, there is a range in which the value is interpreted as 0. This allows for gliding and makes it easy to keep a purely level angle. The higher this value is, the larger that dead zone.
+ - **delayTime**: Frequency at which a new control is registered and a new servo output is generated. The lower this is, the smoother the controls.
+
+All other parameters should be left unmodified.
