@@ -18,11 +18,11 @@ PulsePositionInput RCInput;
 const int RIGHT_VERTICAL = 1;
 const int RIGHT_HORIZONTAL = 2;
 const int LEFT_VERTICAL = 3;
-int LEFT_HORIZONTAL = 4;
-int LEFT_DIAL = 5;
-int RIGHT_DIAL = 6;
-int LEFT_SWITCH = 7;
-int RIGHT_SWITCH = 8;
+const int LEFT_HORIZONTAL = 4;
+const int LEFT_DIAL = 5;
+const int RIGHT_DIAL = 6;
+const int LEFT_SWITCH = 7;
+const int RIGHT_SWITCH = 8;
 
 // Define control modes
 const int NORMAL_MODE = 1000;
