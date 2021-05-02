@@ -37,7 +37,7 @@ const int maxAmplitude = 45; // Maximum amplitude of flapping cycle
 const int maxRollPhaseShift = 30; // Maximum phase shift in degrees when roll is at max
 const int maxPitchAngle = 10; // Maximum change in angle when pitch is at max
 const int maxYawAngle = 10; // Maximum change in angle when yaw is at max
-const int deadzone = 50; // Range in which a control registers as a default value
+const int deadZone = 50; // Range in which a control registers as a default value
 const int delayTime = 5; // How fast in ms the loop cycles
 
 // Initialize variables
@@ -101,21 +101,21 @@ void setup() {
 
 // Normalize throttle readings
 float normalize_throttle (float value) {
-  if (value < 1000 + deadzone) {
+  if (value < 1000 + deadZone) {
     return 0;
   } else {
-    return (value - (1000 + deadzone)) / (1000 - deadzone);
+    return (value - (1000 + deadZone)) / (1000 - deadZone);
   }
 }
 
 // Normalizr steering readings
 float normalize_steering (float value) {
-  if (value < 1500 + deadzone && value > 1500 - deadzone) {
+  if (value < 1500 + deadZone && value > 1500 - deadZone) {
     return 0;
   } else if (value < 1500) {
-    return (value - 1500 + deadzone) / (500 - deadzone);
+    return (value - 1500 + deadZone) / (500 - deadZone);
   } else {
-    return (value - 1500 - deadzone) / (500 - deadzone);
+    return (value - 1500 - deadZone) / (500 - deadZone);
   }
 }
 
