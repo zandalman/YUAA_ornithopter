@@ -20,3 +20,7 @@ Our ornithopter is highly customizable, with many adjustable variables to cater 
  - **delayTime**: Frequency at which a new control is registered and a new servo output is generated. The lower this is, the smoother the controls.
 
 All other parameters should be left unmodified.
+
+## Behind the Scenes
+
+The remote controller has 8 channels, each mapped to a control (roll, pitch, yaw, etc.). For each of the controls, we normalize the input to a value between 0 and 1 or -1 and 1. There are three control modes: normal, amp, and basic. Every iteration of the loop, we input the controls into a function called **updatePosition()**, which takes the controls and renders new servo positions corresponding to the positions in the flap cycle.
